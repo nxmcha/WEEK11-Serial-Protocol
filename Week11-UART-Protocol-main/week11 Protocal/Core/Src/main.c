@@ -521,25 +521,30 @@ void DynamixelProtocal2(uint8_t *Memory, uint8_t MotorID, int16_t dataIn,
 			}
 			case 0x03: //WRITE
 			{
-				//LAB
-				uint16_t startAddr = (parameter[0] & 0xFF)
-						| (parameter[1] << 8 & 0xFF);
-				uint16_t numberOfDataToRead = (parameter[2] & 0xFF)
-						| (parameter[3] << 8 & 0xFF);
+//				uint16_t startAddr = (parameter[0] & 0xFF)
+//						| (parameter[1] << 8 & 0xFF);
+//				uint16_t numberOfDataToRead = (parameter[2] & 0xFF)
+//						| (parameter[3] << 8 & 0xFF);
 				uint8_t temp[] = { 0xff, 0xff, 0xfd, 0x00, 0x00, 0x00, 0x00,
 						0x55, 0x00 };
 				temp[4] = MotorID;
-				temp[5] = (numberOfDataToRead + 4) & 0xff; // +inst+err+crc1+crc2
-				temp[6] = ((numberOfDataToRead + 4) >> 8) & 0xff;
+				temp[5] = 0x04; // +inst+err+crc1+crc2
+				temp[6] = 0x00;
 				uint16_t crc_calc = update_crc(0, temp, 9);
-				crc_calc = update_crc(crc_calc, &(Memory[startAddr]),
-						numberOfDataToRead);
 				uint8_t crctemp[2];
 				crctemp[0] = crc_calc & 0xff;
 				crctemp[1] = (crc_calc >> 8) & 0xff;
 				UARTTxWrite(uart, temp, 9);
 				UARTTxWrite(uart, crctemp, 2);
+				uint16_t position = 0;
+				position = ((parameter[0])& 0xff) | ((parameter[1] << 8)& 0xff);
+				int i;
+				for (i = 2; i < CollectedData; i++) {
+					Memory[position + i - 2] = parameter[i];
+
+				}
 				break;
+				//LAB
 			}
 			default: //Unknown Inst
 			{
